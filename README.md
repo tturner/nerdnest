@@ -127,9 +127,16 @@ mythermostat = "MYDEVICEID"
 
 units = "[cCfF]"
 
+logfile = "/PATH/TO/OPTIONAL/LOG/FILE"
+
 # Choosing units for temperature
 By default nerdnest uses Farenheit for temperature both to display the status and when setting temperature. You can
 override this behavior by adding a configuration key called units and setting it to either "c" or "C".
 
 For Farenheit you must specify the temperature in whole numbers e.g. 70, 75
 For Celcius you can specify half units as well e.g. 19, 20.5, 23.5
+
+# Saving a log
+If you specify the logfile configuration option, whenever you run ./nerdnest status it will append the information it receives to that file in csv format.
+You could use this with crontab to record statistics for your Nest over long periods (and even plot them on charts)
+

@@ -56,6 +56,34 @@ type JResponse struct {
 	Expires     int    `json:"expires_in"`
 }
 
+func WriteLogLine(t Thermostat){
+	logFile := viper.GetString("logfile")
+	if logFile != ""{
+		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer f.Close()
+
+		// format Thermostat
+ 		var csvRow string
+		csvRow = fmt.Sprintf("%s,%s",t.LastConnection,t.Name)
+
+		if viper.GetString("units") == "c" || viper.GetString("units") == "C" {
+			csvRow = csvRow + fmt.Sprintf(",%.1f,%.1f", t.AmbientTempC,t.TargetTempC)
+		} else {
+			csvRow = csvRow + fmt.Sprintf(",%.1f,%.1f",t.AmbientTempF,t.TargetTempF)
+		}
+
+		csvRow = csvRow + fmt.Sprintf(",%d,%s,%s\n" , t.Humidity ,t.HVACState ,t.DeviceId)
+
+		if _, err = f.WriteString(csvRow); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func (t *Thermostat) Refresh() {
 	resp, err := http.Get("https://developer-api.nest.com/devices/thermostats/" + t.DeviceId + "?auth=" + viper.GetString("accesstoken"))
 	if err != nil {
@@ -76,6 +104,8 @@ func (t *Thermostat) Refresh() {
 			log.Fatal(err)
 		}
 	}
+
+	WriteLogLine(*t)
 }
 
 func (t Thermostat) SetAway(status string) {
