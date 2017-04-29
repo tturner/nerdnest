@@ -77,5 +77,18 @@ State: off
 Device ID: KoTA9-raY9xdYrYY036u2rgaeP_lJ-mg
 Structure ID: Suha_CVEVHdOreQFLWC-XlHaPXSRHcEwOb8dKkwYIjcVN0XCBSnKLQ
 ```
+# Building from source
 
+- Get golang: https://golang.org
+- Setup golang (see above)
+- Download this project (git clone or download zip)
+- Create subdirectory bin in the project directory
+- Look in cross-compile.sh and take the command line for your platform
+- Run the command
+- For any dependencies not found, run go get <dependency> e.g.
+```
+go get github.com/jmoiron/jsonq
+```
 
+- Your binary will be in the bin directory
+- Optionally you can just run cross-compile.sh and you will have 4 binaries - one for each platform.
