@@ -48,6 +48,7 @@ type Thermostat struct {
 	AmbientTempC float32    `json:"ambient_temperature_c"`
 	HVACState    string `json:"hvac_state"`
 	StructureID  string `json:"structure_id"`
+	LastConnection string `json:"last_connection"`
 }
 
 type JResponse struct {
@@ -151,24 +152,26 @@ func (t Thermostat) String() string {
 	units := viper.GetString("units")
 
 	if units == "c" || units == "C" {
-		return fmt.Sprintf("Name: %s\nCurrent Temp: %.1fC\nTarget Temp: %.1fC\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s",
+		return fmt.Sprintf("Name: %s\nCurrent Temp: %.1fC\nTarget Temp: %.1fC\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
 			t.Name,
 			t.AmbientTempC,
 			t.TargetTempC,
 			t.Humidity,
 			t.HVACState,
 			t.DeviceId,
-			t.StructureID)
+			t.StructureID,
+			t.LastConnection)
 	}
 
-	return fmt.Sprintf("Name: %s\nCurrent Temp: %dF\nTarget Temp: %dF\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s",
+	return fmt.Sprintf("Name: %s\nCurrent Temp: %dF\nTarget Temp: %dF\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
 		t.Name,
 		t.AmbientTempF,
 		t.TargetTempF,
 		t.Humidity,
 		t.HVACState,
 		t.DeviceId,
-		t.StructureID)
+		t.StructureID,
+		t.LastConnection)
 
 }
 
@@ -340,8 +343,6 @@ func main() {
 		Short: "Current Status",
 		Run: func(cmd *cobra.Command, args []string) {
 			t := Thermostat{}
-
-			fmt.Printf("Args length: %d",len(args))
 
 			if len(args) == 1 {
 				t.DeviceId = args[0]
