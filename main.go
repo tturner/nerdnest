@@ -22,6 +22,7 @@ import (
 var configPath = os.Getenv("HOME") + "/.nerdnest"
 var configName = "nerdnest"
 var fullConfigPath = configPath + "/" + configName + ".toml"
+var lastConnectionFile = "lastConnection"
 
 func init() {
 	viper.SetEnvPrefix("nest")
@@ -73,27 +74,46 @@ type JResponse struct {
 func WriteLogLine(t Thermostat) {
 	logFile := viper.GetString("logfile")
 	if logFile != "" {
-		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+		lastConnectionBytes, err := ioutil.ReadFile(configPath + "/" + lastConnectionFile)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Sprintf("Error reading last connection file - probably first run.")
 		}
+		lastConnection := string(lastConnectionBytes)
 
-		defer f.Close()
+		if (t.LastConnection != lastConnection) {
 
-		// format Thermostat
-		var csvRow string
-		csvRow = fmt.Sprintf("%s,%s", t.LastConnection, t.Name)
+			f, err := os.OpenFile(logFile, os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0640)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		if viper.GetString("units") == "c" || viper.GetString("units") == "C" {
-			csvRow = csvRow + fmt.Sprintf(",%.1f,%.1f", t.AmbientTempC, t.TargetTempC)
-		} else {
-			csvRow = csvRow + fmt.Sprintf(",%.1f,%.1f", t.AmbientTempF, t.TargetTempF)
-		}
+			defer f.Close()
 
-		csvRow = csvRow + fmt.Sprintf(",%d,%s,%s\n", t.Humidity, t.HVACState, t.DeviceId)
+			var logRow string
+			if viper.GetString("logformat") == "json" {
+				jsonBytes, err := json.Marshal(t)
+				if err != nil {
+					log.Fatalf("Error: %v\n", err)
+				}
+				logRow = string(jsonBytes) + "\n"
+			} else {
 
-		if _, err = f.WriteString(csvRow); err != nil {
-			log.Fatal(err)
+				// format Thermostat
+
+				logRow = fmt.Sprintf("%s,%s", t.LastConnection, t.Name)
+
+				if viper.GetString("units") == "c" || viper.GetString("units") == "C" {
+					logRow = logRow + fmt.Sprintf(",%.1f,%.1f", t.AmbientTempC, t.TargetTempC)
+				} else {
+					logRow = logRow + fmt.Sprintf(",%.1f,%.1f", t.AmbientTempF, t.TargetTempF)
+				}
+
+				logRow = logRow + fmt.Sprintf(",%s,%d,%s,%s\n", t.HasLeaf, t.Humidity, t.HVACState, t.DeviceId)
+			}
+			if _, err = f.WriteString(logRow); err != nil {
+				log.Fatal(err)
+			}
+			ioutil.WriteFile(configPath + "/" + lastConnectionFile, []byte(t.LastConnection), os.FileMode(0640))
 		}
 	}
 }

@@ -129,6 +129,8 @@ units = "[f|F|c|C]"
 
 logfile = "/PATH/TO/OPTIONAL/LOG/FILE"
 
+logformat = "[csv|json]"
+
 # Choosing units for temperature
 By default nerdnest uses Farenheit for temperature both to display the status and when setting temperature. You can
 override this behavior by adding a configuration key called units and setting it to either "c" or "C".
@@ -137,6 +139,11 @@ For Farenheit you must specify the temperature in whole numbers e.g. 70, 75
 For Celcius you can specify half units as well e.g. 19, 20.5, 23.5
 
 # Saving a log
-If you specify the logfile configuration option, whenever you run ./nerdnest status it will append the information it receives to that file in csv format.
-You could use this with crontab to record statistics for your Nest over long periods (and even plot them on charts)
+If you specify the logfile configuration option, whenever you run ./nerdnest status it will append the information it 
+receives to that file in either csv or json format. You could use this with crontab to record statistics for your Nest 
+over long periods (and even plot them on charts).
 
+Use the logformat configuration option to specify if you want csv or json. The csv format contains fewer fields.
+
+**NOTE: If you use this library to create an application for other people, you should read the Nest Developer Terms of 
+Service as there is a specific rule about how long you are allowed to retain the data.** 
