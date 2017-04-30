@@ -38,17 +38,31 @@ func init() {
 	}
 }
 
+// Structure to hold most of the information on each thermostat returned from Nest API
 type Thermostat struct {
-	Humidity       int
-	DeviceId       string `json:"device_id"`
-	Name           string
-	TargetTempF    int     `json:"target_temperature_f"`
-	TargetTempC    float32 `json:"target_temperature_c"`
-	AmbientTempF   int     `json:"ambient_temperature_f"`
-	AmbientTempC   float32 `json:"ambient_temperature_c"`
-	HVACState      string  `json:"hvac_state"`
-	StructureID    string  `json:"structure_id"`
-	LastConnection string  `json:"last_connection"`
+	DeviceId                  string `json:"device_id"`
+	Locale                    string `json:"locale"`
+	SoftwareVersion           string `json:"software_version"`
+	StructureID               string  `json:"structure_id"`
+	Name                      string `json:name`
+	LastConnection            string  `json:"last_connection"`
+	IsOnline                  bool `json:"is_online"`
+	HasLeaf                   bool    `json:"has_leaf"`
+	TemperatureScale          string `json:"temperature_scale"`
+	TargetTempF               int     `json:"target_temperature_f"`
+	TargetTempC               float32 `json:"target_temperature_c"`
+	HVACMode                  string `json:"hvac_mode"`
+	AmbientTempF              int     `json:"ambient_temperature_f"`
+	AmbientTempC              float32 `json:"ambient_temperature_c"`
+	Humidity                  int `json:"humidity"`
+	HVACState                 string  `json:"hvac_state"`
+	IsLocked                  bool `json:"is_locked"`
+	Label                     string `json:"label"`
+	SunlightCorrectionEnabled bool `json:"sunlight_correction_enabled"`
+	SunlightCorrectionActive  bool `json:"sunlight_correction_active"`
+	WhereName                 string `json:"where_name"`
+	TimeToTarget              string `json:"time_to_target"`
+	TimeToTargetTraining      string `json:"time_to_target_training"`
 }
 
 type JResponse struct {
@@ -125,7 +139,7 @@ func (t Thermostat) SetAway(status string) {
 	}
 	if resp.StatusCode == 307 {
 		client := &http.Client{}
-		req, err := http.NewRequest("PUT", resp.Header["Location"][0], strings.NewReader("{\"away\":\""+status+"\"}"))
+		req, err := http.NewRequest("PUT", resp.Header["Location"][0], strings.NewReader("{\"away\":\"" + status + "\"}"))
 		if err != nil {
 			log.Fatalf("Error: %v\n", err)
 		}
@@ -152,7 +166,7 @@ func (t Thermostat) SetTemp(temperature float64) {
 		temperature_f := int(temperature)
 		body = fmt.Sprintf("{\"target_temperature_f\": %d}", temperature_f)
 	}
-	req, err := http.NewRequest("PUT", "https://developer-api.nest.com/devices/thermostats/"+t.DeviceId+"?auth="+viper.GetString("accesstoken"), strings.NewReader(body))
+	req, err := http.NewRequest("PUT", "https://developer-api.nest.com/devices/thermostats/" + t.DeviceId + "?auth=" + viper.GetString("accesstoken"), strings.NewReader(body))
 	if err != nil {
 		log.Fatalf("Error: %v\n", err)
 	}
@@ -182,23 +196,25 @@ func (t Thermostat) String() string {
 	units := viper.GetString("units")
 
 	if units == "c" || units == "C" {
-		return fmt.Sprintf("Name: %s\nCurrent Temp: %.1fC\nTarget Temp: %.1fC\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
+		return fmt.Sprintf("Name: %s\nCurrent Temp: %.1fC\nTarget Temp: %.1fC\nHumidity: %d\nState: %s\nHas Leaf: %t\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
 			t.Name,
 			t.AmbientTempC,
 			t.TargetTempC,
 			t.Humidity,
 			t.HVACState,
+			t.HasLeaf,
 			t.DeviceId,
 			t.StructureID,
 			t.LastConnection)
 	}
 
-	return fmt.Sprintf("Name: %s\nCurrent Temp: %dF\nTarget Temp: %dF\nHumidity: %d\nState: %s\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
+	return fmt.Sprintf("Name: %s\nCurrent Temp: %dF\nTarget Temp: %dF\nHumidity: %d\nState: %s\nHas Leaf: %t\nDevice ID: %s\nStructure ID: %s\nLast Connection: %s",
 		t.Name,
 		t.AmbientTempF,
 		t.TargetTempF,
 		t.Humidity,
 		t.HVACState,
+		t.HasLeaf,
 		t.DeviceId,
 		t.StructureID,
 		t.LastConnection)
@@ -344,7 +360,7 @@ func register() {
 			units, _ := reader.ReadString('\n')
 			units = strings.TrimSpace(units)
 
-			err := ioutil.WriteFile(fullConfigPath, []byte("accesstoken = \""+jresp.AccessToken+"\"\nunits = \""+units+"\"\n"), 0640)
+			err := ioutil.WriteFile(fullConfigPath, []byte("accesstoken = \"" + jresp.AccessToken + "\"\nunits = \"" + units + "\"\n"), 0640)
 			if err != nil {
 				log.Fatal(err)
 			}

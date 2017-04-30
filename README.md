@@ -125,7 +125,7 @@ accesstoken = "ACCESSTOKEN"
 
 mythermostat = "MYDEVICEID"
 
-units = "[cCfF]"
+units = "[f|F|c|C]"
 
 logfile = "/PATH/TO/OPTIONAL/LOG/FILE"
 
